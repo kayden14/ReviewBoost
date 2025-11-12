@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Sign up with automatic profile creation
+  // Sign up - profile will be created in ProfileSetup page after authentication
   const signUp = async (
     email: string,
     password: string,
@@ -96,30 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) return { error };
 
-      let profileData: Profile | undefined = undefined;
-
-      if (data.user && fullName && userType) {
-        const { data: insertedProfile, error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              full_name: fullName,
-              user_type: userType,
-              email: data.user.email ?? '',
-            },
-          ])
-          .select()
-          .maybeSingle();
-
-        if (profileError) return { error: profileError };
-        profileData = insertedProfile ?? undefined;
-        setProfile(profileData ?? null);
-      }
-
+      // Don't create profile here - let ProfileSetup handle it after user is authenticated
+      // This avoids RLS policy issues during signup when session might not be established yet
       setUser(data.user ?? null);
 
-      return { error: null, user: data.user ?? undefined, profile: profileData };
+      return { error: null, user: data.user ?? undefined, profile: undefined };
     } catch (error) {
       return { error: error as Error };
     }

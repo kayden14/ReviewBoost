@@ -40,7 +40,9 @@ export default function SignupPage({ onNavigate }: SignupPageProps) {
     try {
       const { error: signUpError } = await signUp(
         formData.email,
-        formData.password
+        formData.password,
+        formData.fullName,
+        'freelancer'
       );
 
       if (signUpError) {

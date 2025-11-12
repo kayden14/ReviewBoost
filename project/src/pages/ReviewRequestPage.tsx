@@ -43,7 +43,7 @@ export default function ReviewRequestPage({ onNavigate }: ReviewRequestPageProps
 
     if (data) {
       setProfile(data);
-      if (data.status !== 'matched' && data.status !== 'reviewed') {
+      if (data.status == 'matched' && data.status == 'reviewed') {
         onNavigate('dashboard');
       }
     }

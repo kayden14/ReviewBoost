@@ -1,16 +1,34 @@
 // ./supabaseClient.ts
+// 
+// IMPORTANT: If you encounter the error "Could not find the table 'public.profiles' in the schema cache",
+// you need to run the database migration. The migration file is located at:
+// supabase/migrations/20251109010534_create_reviewboost_schema.sql
+//
+// To apply the migration:
+// 1. Go to your Supabase Dashboard > SQL Editor
+// 2. Copy and paste the contents of the migration file
+// 3. Run the SQL script
+//
+// Or use Supabase CLI: supabase db push
+//
 import { createClient } from '@supabase/supabase-js';
 
 // Load Supabase environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
 // Initialize Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // User roles
 export type UserType = 'freelancer' | 'admin';

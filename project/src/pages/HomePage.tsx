@@ -28,7 +28,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               Build credibility through our vetted skill-matching engine.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button onClick={() => onNavigate('signup')} size="lg">
+              <Button onClick={() => onNavigate('review-request')} size="lg">
                 Request Review Now
               </Button>
               <Button onClick={() => onNavigate('freelancers')} variant="outline" size="lg">

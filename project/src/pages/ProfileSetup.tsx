@@ -28,7 +28,46 @@ export default function ProfileSetup({ onNavigate }: ProfileSetupProps) {
     setLoading(true);
     setError('');
 
+    if (!user?.id) {
+      setError('You must be logged in to create a profile');
+      setLoading(false);
+      return;
+    }
+
     try {
+      // Ensure user has an active session (required for RLS policies)
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('You must be authenticated to create a profile. Please sign in again.');
+      }
+
+      // First, ensure a profiles entry exists (required for foreign key constraint)
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        // Create profiles entry if it doesn't exist
+        const { error: profileError } = await supabase.from('profiles').insert([
+          {
+            id: user.id,
+            full_name: user.email?.split('@')[0] || 'User',
+            user_type: 'freelancer',
+            email: user.email || '',
+          },
+        ]);
+
+        if (profileError) {
+          // If it's an RLS error, the user might need to confirm their email first
+          if (profileError.code === '42501') {
+            throw new Error('Please confirm your email address before creating your profile. Check your inbox for a confirmation link.');
+          }
+          throw new Error(`Failed to create profile: ${profileError.message}`);
+        }
+      }
+
       const skillsArray = formData.skills
         .split(',')
         .map((s) => s.trim())
@@ -36,7 +75,7 @@ export default function ProfileSetup({ onNavigate }: ProfileSetupProps) {
 
       const { error: insertError } = await supabase.from('freelancer_profiles').insert([
         {
-          user_id: user?.id,
+          user_id: user.id,
           skills: skillsArray,
           portfolio_url: formData.portfolioUrl || null,
           credentials_url: formData.credentialsUrl || null,
@@ -52,7 +91,7 @@ export default function ProfileSetup({ onNavigate }: ProfileSetupProps) {
         onNavigate('dashboard');
       }, 2000);
     } catch (err) {
-      setError('Failed to create profile. Please try again.');
+      setError('Failed to create profile. Confirm Email first and try again');
       console.error(err);
     } finally {
       setLoading(false);
